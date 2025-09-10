@@ -10,101 +10,101 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 //placing user order from front end
 const placeOrder = async (req, res) => {
-    const frontend_url = "http://localhost:5173";
+  const frontend_url = "https://restaurant-shan-front.onrender.com";
 
-    try {
-        const userId = req.userId;
-        if (!userId) {
-            return res.json({ success: false, message: "User not authenticated" });
-        }
-
-        if (!req.body.items || req.body.items.length === 0) {
-            console.error("❌ Order Error: No items in order request.");
-            return res.json({ success: false, message: "No items in order" });
-        }
-
-        let totalAmount = 0;
-        const orderItems = req.body.items.map(item => {
-            const extrasTotal = item.extras
-                ? item.extras.reduce((acc, extra) => acc + (extra.price * extra.quantity || 0), 0)
-                : 0;
-
-            const itemTotal = ((item.price || 0) + extrasTotal) * (item.quantity || 1);
-            totalAmount += itemTotal;
-
-            return {
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity,
-                extras: item.extras.map(extra => ({
-                    _id: extra._id,
-                    name: extra.name,
-                    quantity: extra.quantity
-                })),
-                comment: item.comment || ""
-            };
-        });
-
-        if (isNaN(totalAmount) || totalAmount <= 0) {
-            console.error("❌ Order Error: Invalid totalAmount", totalAmount);
-            return res.json({ success: false, message: "Invalid total amount" });
-        }
-
-        const newOrder = new orderModel({
-            userId: userId,
-            items: orderItems,
-            amount: totalAmount,
-            address: req.body.address,
-            date: req.body.date
-        });
-
-        await newOrder.save();
-        await userModel.findByIdAndUpdate(userId, { cartData: {} });
-
-        let line_items = [];
-        req.body.items.forEach(item => {
-            // const extrasTotal = item.extras
-            //     ? item.extras.reduce((acc, extra) => acc + (extra.price * extra.quantity || 0), 0)
-            //     : 0;
-
-            // const totalItemPrice = (item.price || 0) + extrasTotal;
-
-            line_items.push({
-                price_data: {
-                    currency: "nok",
-                    product_data: { name: item.name || "Unknown Item" },
-                    unit_amount: Math.round(item.price * 100),
-                },
-                quantity: item.quantity || 1
-            });
-
-            item.extras.forEach(extra => {
-                if (extra.price) {
-                    line_items.push({
-                        price_data: {
-                            currency: "nok",
-                            product_data: { name: `${item.name} - ${extra.name}` },
-                            unit_amount: Math.round(extra.price * 100),
-                        },
-                        quantity: extra.quantity || 1
-                    });
-                }
-            });
-        });
-
-        const session = await stripe.checkout.sessions.create({
-            line_items,
-            mode: 'payment',
-            success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`
-        });
-
-        res.json({ success: true, session_url: session.url });
-
-    } catch (error) {
-        console.error("❌ Error processing order:", error);
-        res.json({ success: false, message: "Error processing order" });
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.json({ success: false, message: "User not authenticated" });
     }
+
+    if (!req.body.items || req.body.items.length === 0) {
+      console.error("❌ Order Error: No items in order request.");
+      return res.json({ success: false, message: "No items in order" });
+    }
+
+    let totalAmount = 0;
+    const orderItems = req.body.items.map(item => {
+      const extrasTotal = item.extras
+        ? item.extras.reduce((acc, extra) => acc + (extra.price * extra.quantity || 0), 0)
+        : 0;
+
+      const itemTotal = ((item.price || 0) + extrasTotal) * (item.quantity || 1);
+      totalAmount += itemTotal;
+
+      return {
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        extras: item.extras.map(extra => ({
+          _id: extra._id,
+          name: extra.name,
+          quantity: extra.quantity
+        })),
+        comment: item.comment || ""
+      };
+    });
+
+    if (isNaN(totalAmount) || totalAmount <= 0) {
+      console.error("❌ Order Error: Invalid totalAmount", totalAmount);
+      return res.json({ success: false, message: "Invalid total amount" });
+    }
+
+    const newOrder = new orderModel({
+      userId: userId,
+      items: orderItems,
+      amount: totalAmount,
+      address: req.body.address,
+      date: req.body.date
+    });
+
+    await newOrder.save();
+    await userModel.findByIdAndUpdate(userId, { cartData: {} });
+
+    let line_items = [];
+    req.body.items.forEach(item => {
+      // const extrasTotal = item.extras
+      //     ? item.extras.reduce((acc, extra) => acc + (extra.price * extra.quantity || 0), 0)
+      //     : 0;
+
+      // const totalItemPrice = (item.price || 0) + extrasTotal;
+
+      line_items.push({
+        price_data: {
+          currency: "nok",
+          product_data: { name: item.name || "Unknown Item" },
+          unit_amount: Math.round(item.price * 100),
+        },
+        quantity: item.quantity || 1
+      });
+
+      item.extras.forEach(extra => {
+        if (extra.price) {
+          line_items.push({
+            price_data: {
+              currency: "nok",
+              product_data: { name: `${item.name} - ${extra.name}` },
+              unit_amount: Math.round(extra.price * 100),
+            },
+            quantity: extra.quantity || 1
+          });
+        }
+      });
+    });
+
+    const session = await stripe.checkout.sessions.create({
+      line_items,
+      mode: 'payment',
+      success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
+      cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`
+    });
+
+    res.json({ success: true, session_url: session.url });
+
+  } catch (error) {
+    console.error("❌ Error processing order:", error);
+    res.json({ success: false, message: "Error processing order" });
+  }
 };
 
 
@@ -164,8 +164,8 @@ export const createGuestStripeCheckout = async (req, res) => {
     let line_items = [];
 
     items.forEach(item => {
-    //   const extrasTotal = item.extras?.reduce((acc, extra) => acc + (extra.price * extra.quantity || 0), 0) || 0;
-    //   const totalItemPrice = (item.price || 0) + extrasTotal;
+      //   const extrasTotal = item.extras?.reduce((acc, extra) => acc + (extra.price * extra.quantity || 0), 0) || 0;
+      //   const totalItemPrice = (item.price || 0) + extrasTotal;
 
       line_items.push({
         price_data: {
@@ -177,20 +177,20 @@ export const createGuestStripeCheckout = async (req, res) => {
       });
 
       item.extras?.forEach(extra => {
-        if (extra.price ){
-            line_items.push({
+        if (extra.price) {
+          line_items.push({
             price_data: {
-                currency: "nok",
-                product_data: { name: `${item.name} - ${extra.name}` },
-                unit_amount: Math.round((extra.price || 0) * 100)
+              currency: "nok",
+              product_data: { name: `${item.name} - ${extra.name}` },
+              unit_amount: Math.round((extra.price || 0) * 100)
             },
             quantity: extra.quantity || 1
-            });
+          });
         }
       });
     });
 
-    const frontend_url = "http://localhost:5173"; // update to production if needed
+    const frontend_url = "https://restaurant-shan-front.onrender.com"; // update to production if needed
 
     const session = await stripe.checkout.sessions.create({
       line_items,
@@ -214,83 +214,83 @@ export const createGuestStripeCheckout = async (req, res) => {
 
 
 const sendTrackingEmail = async (email, trackingLink) => {
-    const subject = "Your Food Order Tracking Link";
-    const text = `Thanks for ordering! You can track your order here: ${trackingLink}`;
-    const html = `<p>Thanks for ordering!<br>You can track your order <a href="${trackingLink}">here</a>.</p>`;
-  
-    await sendEmail(email, subject, text, html);
+  const subject = "Your Food Order Tracking Link";
+  const text = `Thanks for ordering! You can track your order here: ${trackingLink}`;
+  const html = `<p>Thanks for ordering!<br>You can track your order <a href="${trackingLink}">here</a>.</p>`;
+
+  await sendEmail(email, subject, text, html);
 };
 
 
 
 const verifyOrder = async (req, res) => {
-    const { orderId, success, guest } = req.body;
+  const { orderId, success, guest } = req.body;
 
-    try {
-      if (success == "true") {
-        const updatedOrder = await orderModel.findByIdAndUpdate(orderId, { payment: true }, { new: true });
-  
+  try {
+    if (success == "true") {
+      const updatedOrder = await orderModel.findByIdAndUpdate(orderId, { payment: true }, { new: true });
 
-        if (guest && updatedOrder?.email && updatedOrder?.trackingToken) {
-          const trackingLink = `http://localhost:5173/track-order/${updatedOrder.trackingToken}`;
-          await sendTrackingEmail(updatedOrder.email, trackingLink);
 
-          return res.json({
-            success: true,
-            message: "Paid",
-            guestTrackingToken: updatedOrder.trackingToken
-          });
-        }
-  
-        res.json({ success: true, message: "Paid" });
-      } else {
-        await orderModel.findByIdAndDelete(orderId);
-        res.json({ success: false, message: "Not Paid" });
+      if (guest && updatedOrder?.email && updatedOrder?.trackingToken) {
+        const trackingLink = `https://restaurant-shan-front.onrender.com/track-order/${updatedOrder.trackingToken}`;
+        await sendTrackingEmail(updatedOrder.email, trackingLink);
+
+        return res.json({
+          success: true,
+          message: "Paid",
+          guestTrackingToken: updatedOrder.trackingToken
+        });
       }
-    } catch (error) {
-      console.log(error);
-      res.json({ success: false, message: "Error" });
+
+      res.json({ success: true, message: "Paid" });
+    } else {
+      await orderModel.findByIdAndDelete(orderId);
+      res.json({ success: false, message: "Not Paid" });
     }
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" });
+  }
 };
-  
+
 
 // GET /api/order/track/:token
 export const trackGuestOrder = async (req, res) => {
-    try {
-      const { token } = req.params;
-  
-      const order = await orderModel
-        .findOne({ trackingToken: token, payment: true })
-        .populate("items.extras"); // 🟢 Populate extra ingredient details
-  
-      if (!order) {
-        return res.status(404).json({ success: false, message: "Order not found." });
-      }
-  
-      res.status(200).json({ success: true, order });
-    } catch (error) {
-      console.error("❌ Error fetching guest order:", error);
-      res.status(500).json({ success: false, message: "Error fetching order." });
-    }
-  };
-  
-  
-  
+  try {
+    const { token } = req.params;
 
-  
+    const order = await orderModel
+      .findOne({ trackingToken: token, payment: true })
+      .populate("items.extras"); // 🟢 Populate extra ingredient details
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found." });
+    }
+
+    res.status(200).json({ success: true, order });
+  } catch (error) {
+    console.error("❌ Error fetching guest order:", error);
+    res.status(500).json({ success: false, message: "Error fetching order." });
+  }
+};
+
+
+
+
+
 
 // 🟢 Fetch all orders for the admin panel
 const listOrders = async (req, res) => {
-    try {
-        const orders = await orderModel
-            .find({ payment: true })
-            .populate("items.extras"); // ✅ Populate extras with details
+  try {
+    const orders = await orderModel
+      .find({ payment: true })
+      .populate("items.extras"); // ✅ Populate extras with details
 
-        res.json({ success: true, data: orders });
-    } catch (error) {
-        console.log("❌ Error fetching orders for admin:", error);
-        res.json({ success: false, message: "Error fetching orders" });
-    }
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    console.log("❌ Error fetching orders for admin:", error);
+    res.json({ success: false, message: "Error fetching orders" });
+  }
 };
 
 
@@ -298,16 +298,16 @@ const listOrders = async (req, res) => {
 
 // 🟢 Fetch user-specific orders
 const userOrders = async (req, res) => {
-    try {
-        const orders = await orderModel
-            .find({ userId: req.userId, payment: true })
-            .populate("items.extras"); // ✅ Populate extra ingredient details
+  try {
+    const orders = await orderModel
+      .find({ userId: req.userId, payment: true })
+      .populate("items.extras"); // ✅ Populate extra ingredient details
 
-        res.json({ success: true, data: orders });
-    } catch (error) {
-        console.log("❌ Error fetching user orders:", error);
-        res.json({ success: false, message: "Error fetching orders" });
-    }
+    res.json({ success: true, data: orders });
+  } catch (error) {
+    console.log("❌ Error fetching user orders:", error);
+    res.json({ success: false, message: "Error fetching orders" });
+  }
 };
 
 const getLastOrder = async (req, res) => {
@@ -327,14 +327,14 @@ const getLastOrder = async (req, res) => {
 
 
 //api for order status update 
-const updateStatus = async (req,res) => {
-    try {
-        await orderModel.findByIdAndUpdate(req.body.orderId,{status:req.body.status})
-        res.json({success:true,message:"Status Updated"})
-    } catch (error) {
-        console.log(error);
-        res.json({success:false,message:"Error"})
-    }
+const updateStatus = async (req, res) => {
+  try {
+    await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status })
+    res.json({ success: true, message: "Status Updated" })
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error" })
+  }
 }
 
-export { placeOrder, verifyOrder, userOrders, listOrders,updateStatus, getLastOrder }
+export { placeOrder, verifyOrder, userOrders, listOrders, updateStatus, getLastOrder }

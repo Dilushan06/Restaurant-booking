@@ -27,7 +27,7 @@ const server = http.createServer(app)
 // ✅ Setup Socket.IO server
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173", // or your frontend URL
+        origin: "https://restaurant-shan-front.onrender.com", // or your frontend URL
         methods: ["GET", "POST"]
     }
 })
@@ -52,8 +52,8 @@ connectDB();
 app.use("/api/food", foodRouter)
 app.use("/foodimages", express.static('uploads/foods'))
 app.use("/api/user", userRouter)
-app.use("/api/cart",cartRouter)
-app.use("/api/order",orderRouter)
+app.use("/api/cart", cartRouter)
+app.use("/api/order", orderRouter)
 app.use("/api/category", categoryRouter)
 app.use("/categoryimages", express.static('uploads/categories'))
 app.use("/api/extras", extraRouter); // 🟢 Register Extra Ingredients API
