@@ -4,10 +4,8 @@ import "./Extras.css";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-
 const Extras = () => {
-    
-    const url = "http://localhost:4000";
+  const url = "https://restaurant-shan.onrender.com";
   const [extras, setExtras] = useState([]);
   const [newExtra, setNewExtra] = useState({ name: "", price: "" });
 
@@ -61,7 +59,9 @@ const Extras = () => {
   // 🟢 Remove an extra ingredient
   const removeExtra = async (extraId) => {
     try {
-      const response = await axios.post(`${url}/api/extras/remove`, { id: extraId });
+      const response = await axios.post(`${url}/api/extras/remove`, {
+        id: extraId,
+      });
       if (response.data.success) {
         setExtras((prev) => prev.filter((extra) => extra._id !== extraId));
         toast.success("Extra removed successfully!");
@@ -106,7 +106,9 @@ const Extras = () => {
         {extras.length > 0 ? (
           extras.map((extra) => (
             <li className="ex-li" key={extra._id}>
-              <p>{extra.name} - ${extra.price}</p>
+              <p>
+                {extra.name} - ${extra.price}
+              </p>
               <button onClick={() => removeExtra(extra._id)}>Remove</button>
             </li>
           ))

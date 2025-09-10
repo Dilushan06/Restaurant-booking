@@ -25,7 +25,9 @@ const GuestTrack = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/api/order/track/${token}`);
+        const res = await axios.get(
+          `https://restaurant-shan.onrender.com/api/order/track/${token}`
+        );
         if (res.data.success) {
           setOrder(res.data.order);
         } else {
@@ -41,8 +43,18 @@ const GuestTrack = () => {
     fetchOrder();
   }, [token]);
 
-  if (loading) return <div className="guest-track"><h3>Loading...</h3></div>;
-  if (!order) return <div className="guest-track"><h3>No order found.</h3></div>;
+  if (loading)
+    return (
+      <div className="guest-track">
+        <h3>Loading...</h3>
+      </div>
+    );
+  if (!order)
+    return (
+      <div className="guest-track">
+        <h3>No order found.</h3>
+      </div>
+    );
 
   return (
     <div className="guest-track">
@@ -58,18 +70,23 @@ const GuestTrack = () => {
                 <b>{item.name}</b> x {item.quantity}
               </p>
 
-              {item.mandatoryOptions && Object.keys(item.mandatoryOptions).length > 0 && (
-                <p className="order-mandatory">
-                  <b>Options:</b>{" "}
-                  {Object.entries(item.mandatoryOptions).map(([key, value], i, arr) => (
-                    <span className="mandatory" key={i}>
-                      {key}: {value.label}
-                      {value.additionalPrice ? ` (+Kr ${value.additionalPrice})` : ""}
-                      {i < arr.length - 1 ? ", " : ""}
-                    </span>
-                  ))}
-                </p>
-              )}
+              {item.mandatoryOptions &&
+                Object.keys(item.mandatoryOptions).length > 0 && (
+                  <p className="order-mandatory">
+                    <b>Options:</b>{" "}
+                    {Object.entries(item.mandatoryOptions).map(
+                      ([key, value], i, arr) => (
+                        <span className="mandatory" key={i}>
+                          {key}: {value.label}
+                          {value.additionalPrice
+                            ? ` (+Kr ${value.additionalPrice})`
+                            : ""}
+                          {i < arr.length - 1 ? ", " : ""}
+                        </span>
+                      )
+                    )}
+                  </p>
+                )}
 
               {item.extras?.length > 0 && (
                 <p className="order-extras">
@@ -92,14 +109,20 @@ const GuestTrack = () => {
           ))}
         </div>
 
-        <p><b>Total:</b> Kr {order.amount}.00</p>
-        <p><b>Items:</b> {order.items.length}</p>
+        <p>
+          <b>Total:</b> Kr {order.amount}.00
+        </p>
+        <p>
+          <b>Items:</b> {order.items.length}
+        </p>
         <p>
           <span>&#x25cf;</span>{" "}
           <span className="status-pill">{order.status}</span>
         </p>
 
-        <button className="gu-bt" onClick={() => window.location.reload()}>Track Order</button>
+        <button className="gu-bt" onClick={() => window.location.reload()}>
+          Track Order
+        </button>
       </div>
     </div>
   );

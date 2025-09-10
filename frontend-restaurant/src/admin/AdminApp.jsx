@@ -14,7 +14,7 @@ import Bookings from "./pages/Bookings/Bookings";
 import StoreHour from "./pages/StoreHour/StoreHour";
 
 const AdminApp = () => {
-  const url = "http://localhost:4000";
+  const url = "https://restaurant-shan.onrender.com";
   const { token, userRole } = useContext(StoreContext);
   const navigate = useNavigate();
 
@@ -36,9 +36,9 @@ const AdminApp = () => {
           <Route path="/list" element={<List url={url} />} />
           <Route path="/orders" element={<Orders url={url} />} />
           <Route path="/categories" element={<Categories url={url} />} />
-          <Route path="/extras" element={<Extras url={url} />}/>
-          <Route path="/bookings" element={<Bookings url={url} />}/>
-          <Route path="/store-hours" element={<StoreHour url={url} />}/>
+          <Route path="/extras" element={<Extras url={url} />} />
+          <Route path="/bookings" element={<Bookings url={url} />} />
+          <Route path="/store-hours" element={<StoreHour url={url} />} />
         </Routes>
       </div>
     </div>

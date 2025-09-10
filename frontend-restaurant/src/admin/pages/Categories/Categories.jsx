@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { assets } from "../../assets/assets";
 
 const Categories = () => {
-  const url = "http://localhost:4000";
+  const url = "https://restaurant-shan.onrender.com";
 
   const [categories, setCategories] = useState([]);
   const [newCategoryImage, setNewCategoryImage] = useState(null);
@@ -107,7 +107,8 @@ const Categories = () => {
             value={newCategory.name}
           />
           <label htmlFor="image">
-            <img className="cat-img"
+            <img
+              className="cat-img"
               src={
                 newCategoryImage
                   ? URL.createObjectURL(newCategoryImage)

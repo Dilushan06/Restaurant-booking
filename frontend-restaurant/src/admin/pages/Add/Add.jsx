@@ -6,7 +6,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const Add = () => {
-  const url = () => "http://localhost:4000";
+  const url = () => "https://restaurant-shan.onrender.com";
 
   const [image, setImage] = useState(false);
   const [data, setData] = useState({
@@ -22,9 +22,11 @@ const Add = () => {
 
   const [mandatoryOptions, setMandatoryOptions] = useState([]);
   const [optionTitle, setOptionTitle] = useState("");
-  const [optionChoice, setOptionChoice] = useState({ label: "", additionalPrice: 0 });
+  const [optionChoice, setOptionChoice] = useState({
+    label: "",
+    additionalPrice: 0,
+  });
   const [optionChoices, setOptionChoices] = useState([]);
-
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -81,7 +83,6 @@ const Add = () => {
     formData.append("image", image);
     formData.append("extras", JSON.stringify(data.extras)); // 🟢 Convert extras to JSON string
     formData.append("mandatoryOptions", JSON.stringify(mandatoryOptions));
-
 
     try {
       const response = await axios.post(`${url()}/api/food/add`, formData);
@@ -197,7 +198,6 @@ const Add = () => {
           </div>
         </div>
 
-
         {/* 🔵 Mandatory Options (with per-choice pricing) */}
         <div className="add-mandatory-options flex-col">
           <p>Mandatory Options (e.g., Burger Size, Spice Level)</p>
@@ -218,7 +218,10 @@ const Add = () => {
                 placeholder="Choice Label (e.g., 130g)"
                 value={optionChoice.label || ""}
                 onChange={(e) =>
-                  setOptionChoice((prev) => ({ ...prev, label: e.target.value }))
+                  setOptionChoice((prev) => ({
+                    ...prev,
+                    label: e.target.value,
+                  }))
                 }
               />
               <input
@@ -249,11 +252,16 @@ const Add = () => {
             <div className="current-choices">
               {optionChoices.map((choice, idx) => (
                 <span key={idx} className="choice-item">
-                  {choice.label} {choice.additionalPrice ? `( +${choice.additionalPrice}kr )` : ""}
+                  {choice.label}{" "}
+                  {choice.additionalPrice
+                    ? `( +${choice.additionalPrice}kr )`
+                    : ""}
                   <button
                     type="button"
                     onClick={() =>
-                      setOptionChoices(optionChoices.filter((_, i) => i !== idx))
+                      setOptionChoices(
+                        optionChoices.filter((_, i) => i !== idx)
+                      )
                     }
                   >
                     ❌
@@ -288,7 +296,8 @@ const Add = () => {
                 {opt.choices.map((c, i) => (
                   <span key={i}>
                     {" "}
-                    {c.label} {c.additionalPrice ? `( +${c.additionalPrice}kr )` : ""}
+                    {c.label}{" "}
+                    {c.additionalPrice ? `( +${c.additionalPrice}kr )` : ""}
                     {i !== opt.choices.length - 1 && ","}
                   </span>
                 ))}
@@ -296,8 +305,6 @@ const Add = () => {
             ))}
           </div>
         </div>
-
-
 
         <button type="submit" className="add-button">
           ADD

@@ -58,11 +58,14 @@ const TableBooking = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:4000/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData),
-      });
+      const response = await fetch(
+        "https://restaurant-shan.onrender.com/api/bookings",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bookingData),
+        }
+      );
 
       const data = await response.json();
 
@@ -105,7 +108,7 @@ const TableBooking = () => {
           .toISOString()
           .split("T")[0];
         const response = await fetch(
-          `http://localhost:4000/api/bookings/availability?date=${formattedDate}&timeSlot=${selectedTimeSlot}`
+          `https://restaurant-shan.onrender.com/api/bookings/availability?date=${formattedDate}&timeSlot=${selectedTimeSlot}`
         );
         const data = await response.json();
         setAvailableGuests(data.availableGuests);
@@ -126,7 +129,7 @@ const TableBooking = () => {
           .toISOString()
           .split("T")[0];
         const res = await fetch(
-          `http://localhost:4000/api/bookings/by-date/${formattedDate}`
+          `https://restaurant-shan.onrender.com/api/bookings/by-date/${formattedDate}`
         );
         const data = await res.json();
         if (data.success) {

@@ -8,17 +8,11 @@ import { Navigate } from "react-router-dom";
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
-  
-  
-  const url = "http://localhost:4000";
+  const url = "https://restaurant-shan.onrender.com";
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [cartItems, setCartItems] = useState(() => {
     const savedGuestCart = localStorage.getItem("guestCart");
-    return token
-      ? {}
-      : savedGuestCart
-      ? JSON.parse(savedGuestCart)
-      : {};
+    return token ? {} : savedGuestCart ? JSON.parse(savedGuestCart) : {};
   });
   const [userRole, setUserRole] = useState(localStorage.getItem("role") || ""); // 🔹 Store user role
   const [food_list, setFoodList] = useState([]);
@@ -33,24 +27,27 @@ const StoreContextProvider = (props) => {
     mandatoryOptions = [] // 👈 New
   ) => {
     // Include mandatoryOptions in the key for uniqueness
-    const cartKey = `${itemId}_${btoa(JSON.stringify(mandatoryOptions))}_${btoa(JSON.stringify(extras))}_${btoa(comment)}`;
-
+    const cartKey = `${itemId}_${btoa(JSON.stringify(mandatoryOptions))}_${btoa(
+      JSON.stringify(extras)
+    )}_${btoa(comment)}`;
 
     // 🟢 Enrich extras with name and price
-    const enrichedExtras = extras.map(extra => {
+    const enrichedExtras = extras.map((extra) => {
       if (extra.price && extra.name) return extra;
-  
-      const extraDetails = food_list.flatMap(f => f.extras || []).find(e => e._id === extra._id);
+
+      const extraDetails = food_list
+        .flatMap((f) => f.extras || [])
+        .find((e) => e._id === extra._id);
       return {
         _id: extra._id,
         name: extraDetails?.name || "Unknown Extra",
         price: extraDetails?.price || 0,
-        quantity: extra.quantity || 1
+        quantity: extra.quantity || 1,
       };
     });
-  
+
     const currentQuantity = cartItems[cartKey]?.quantity || 0;
-  
+
     const updatedCartItem = {
       itemId,
       extras: enrichedExtras,
@@ -58,14 +55,14 @@ const StoreContextProvider = (props) => {
       quantity: currentQuantity + quantity,
       mandatoryOptions, // 🆕 Add this to cart item structure
     };
-  
+
     const updatedCart = {
       ...cartItems,
-      [cartKey]: updatedCartItem
+      [cartKey]: updatedCartItem,
     };
-  
+
     setCartItems(updatedCart);
-  
+
     // 🔐 Sync with backend if logged in
     if (token) {
       try {
@@ -77,7 +74,7 @@ const StoreContextProvider = (props) => {
             extras: enrichedExtras,
             comment,
             quantity: updatedCartItem.quantity,
-            mandatoryOptions
+            mandatoryOptions,
           },
           { headers: { token } }
         );
@@ -86,30 +83,26 @@ const StoreContextProvider = (props) => {
       }
     } else {
       // 🧠 For guests: update localStorage
-      setCartItems(prev => {
+      setCartItems((prev) => {
         const currentQty = prev[cartKey]?.quantity || 0;
         const updatedCartItem = {
           itemId,
           extras: enrichedExtras,
           comment,
           quantity: currentQty + quantity,
-          mandatoryOptions
+          mandatoryOptions,
         };
-  
+
         const newCart = {
           ...prev,
-          [cartKey]: updatedCartItem
+          [cartKey]: updatedCartItem,
         };
-  
+
         localStorage.setItem("guestCart", JSON.stringify(newCart));
         return newCart;
       });
     }
   };
-  
-  
-  
-  
 
   // Updated removeFromCart to work with the new structure
   const removeFromCart = async (cartKey) => {
@@ -121,7 +114,7 @@ const StoreContextProvider = (props) => {
           { cartKey },
           { headers: { token } }
         );
-  
+
         if (res.data.success) {
           setCartItems(res.data.cartData);
         }
@@ -139,76 +132,79 @@ const StoreContextProvider = (props) => {
       });
     }
   };
-  
 
   // Calculate total cart amount
   const [totalCartAmount, setTotalCartAmount] = useState(0);
 
   const calculateTotalAmount = () => {
     let total = 0;
-  
+
     Object.values(cartItems).forEach((cartItem) => {
-      const foodItem = food_list.find((product) => product._id === cartItem.itemId);
-  
+      const foodItem = food_list.find(
+        (product) => product._id === cartItem.itemId
+      );
+
       if (foodItem) {
         // Extras cost
         const extrasCost = (cartItem.extras || []).reduce((sum, extra) => {
-          const extraDetails = foodItem.extras?.find(e => e._id === extra._id);
+          const extraDetails = foodItem.extras?.find(
+            (e) => e._id === extra._id
+          );
           const extraPrice = extraDetails ? extraDetails.price : 0;
-          return sum + (extraPrice * (extra.quantity || 1));
+          return sum + extraPrice * (extra.quantity || 1);
         }, 0);
-  
+
         // Mandatory options cost
-        const mandatoryOptionCost = Object.values(cartItem.mandatoryOptions || {}).reduce(
-          (sum, option) => sum + (option?.additionalPrice || 0),
-          0
-        );
-  
-        const itemTotal = (foodItem.price + extrasCost + mandatoryOptionCost) * (cartItem.quantity || 1);
+        const mandatoryOptionCost = Object.values(
+          cartItem.mandatoryOptions || {}
+        ).reduce((sum, option) => sum + (option?.additionalPrice || 0), 0);
+
+        const itemTotal =
+          (foodItem.price + extrasCost + mandatoryOptionCost) *
+          (cartItem.quantity || 1);
         total += itemTotal;
       }
     });
-  
+
     setTotalCartAmount(total);
   };
-  
-  
-  
+
   // 🔹 Ensure total is recalculated when cartItems *or* food_list are available
   useEffect(() => {
     if (food_list.length > 0) {
       calculateTotalAmount();
     }
   }, [cartItems, food_list]);
-  
+
   useEffect(() => {
     if (!token) {
       localStorage.setItem("guestCart", JSON.stringify(cartItems));
     }
   }, [cartItems, token]);
-  
-  
+
   // 🟢 Function to get total cart amount
   const getTotalCartAmount = () => {
     return totalCartAmount;
   };
 
-
-
   const loadCartData = async (token) => {
     try {
-      const response = await axios.post(url + "/api/cart/get", {}, { headers: { token } });
-  
+      const response = await axios.post(
+        url + "/api/cart/get",
+        {},
+        { headers: { token } }
+      );
+
       if (response.data.success && response.data.cartData) {
         let transformedCart = {};
-  
+
         // 🟢 Fetch extras list to get names & prices
         const extrasResponse = await axios.get(url + "/api/extras/list");
         const extrasMap = {};
         extrasResponse.data.extras.forEach((extra) => {
           extrasMap[extra._id] = extra; // Store extras by ID
         });
-  
+
         Object.entries(response.data.cartData).forEach(([key, item]) => {
           transformedCart[key] = {
             itemId: item.itemId,
@@ -224,7 +220,7 @@ const StoreContextProvider = (props) => {
             mandatoryOptions: item.mandatoryOptions || {},
           };
         });
-  
+
         setCartItems(transformedCart);
         calculateTotalAmount();
       } else {
@@ -234,8 +230,6 @@ const StoreContextProvider = (props) => {
       console.error("❌ Error fetching cart:", error);
     }
   };
-  
-  
 
   const fetchCategories = async () => {
     const response = await axios.get(url + "/api/category/list");
@@ -270,8 +264,6 @@ const StoreContextProvider = (props) => {
     }
     loadData();
   }, [token]);
-  
-  
 
   const contextValue = {
     food_list,
@@ -287,7 +279,7 @@ const StoreContextProvider = (props) => {
     userRole,
     setUserRole,
     logout,
-    loadCartData
+    loadCartData,
   };
 
   return (
