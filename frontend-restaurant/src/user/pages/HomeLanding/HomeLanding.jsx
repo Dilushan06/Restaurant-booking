@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unescaped-entities */
 
 import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const HomeLanding = () => {
   useEffect(() => {
@@ -21,8 +22,13 @@ const HomeLanding = () => {
                         <div className="col-lg-6 text-center text-lg-start">
                             <h1 className="display-3 text-white animated slideInLeft">Enjoy Our <br />Delicious Meal</h1>
                             <p className="text-white animated slideInLeft mb-4 pb-2">Tempor erat elitr rebum at clita. Diam dolor diam ipsum sit. Aliqu diam amet diam et eos. Clita erat ipsum et lorem et sit, sed stet lorem sit clita duo justo magna dolore erat amet</p>
-                            <a href="/menu" className="btn btn-primary py-sm-3 px-sm-5 me-3 animated slideInLeft" >Order Now</a>
-                            <a href="/booking" className="btn btn-primary py-sm-3 px-sm-5 me-3 animated slideInLeft" >Book a Table</a>
+                            <Link to="/menu" className="btn btn-primary py-sm-3 px-sm-5 me-3 animated slideInLeft">
+                            Order Now
+                            </Link>
+
+                            <Link to="/booking" className="btn btn-primary py-sm-3 px-sm-5 me-3 animated slideInLeft">
+                            Book a Table
+                            </Link>
                         </div>
                         <div className="col-lg-6 text-center text-lg-end overflow-hidden">
                             <img className="img-fluid" src="img/hero.png" alt=""/>
