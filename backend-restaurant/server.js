@@ -19,7 +19,7 @@ import storeHourRouter from "./routes/storeHourRoute.js"
 
 // app config
 const app = express()
-const port = 4000
+
 
 // ✅ Create HTTP server for Socket.IO
 const server = http.createServer(app)
@@ -65,8 +65,11 @@ app.get("/", (req, res) => {
 })
 
 // ✅ Use the HTTP server to listen instead of app.listen
-server.listen(port, () => {
-    console.log(`🚀 Server running at http://localhost:${port}`)
-})
+const PORT = process.env.PORT || 4000;
+
+server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});
+
 
 // mongodb+srv://dilushan06:<db_password>@cluster0.xbo2f.mongodb.net/?
